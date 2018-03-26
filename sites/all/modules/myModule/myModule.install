@@ -1,0 +1,137 @@
+<?php
+ 
+/**
+ * Implements hook_install().
+ */
+function myModule_install()
+{
+ 
+	$t = get_t();
+ 
+	// Step 1 - Define the custom content type
+ 
+	$content_type = array(
+	
+		'type'          => 'slideshow',
+		'name'          => $t('Slideshow'),
+		'description'	=> $t('Create a new slideshow'),
+		'title_label'	=> $t('Slideshow title'),
+		'base'          => 'node_content',
+		'custom'        => TRUE,
+ 
+	);
+ 
+	$node_type = node_type_set_defaults($content_type);
+ 
+	node_type_save($node_type);
+ 
+	// Step 2 - Create new fields
+ 
+	$fields = array(	
+ 
+		// Description
+ 
+		'slideshow_description'	=> array(
+		
+			'field_name'	=> 'slideshow_description',
+			'type'          => 'text_long',
+			'cardinality'	=> 1,
+ 
+		),
+		'slideshow_image'	=> array(
+		
+			'field_name'	=> 'slideshow_image',
+			'type'          => 'image',
+			'cardinality'	=> 1,slideshow_image
+ 
+		),
+ 
+	);
+ 
+	foreach( $fields as $field ) {
+ 
+		field_create_field($field);
+ 
+	}
+ 
+	// Step 3 - Attach fields to content type
+ 
+	$instances = array(
+	
+		// Description
+ 
+		'slideshow_description'	=> array(
+		
+			'field_name'   => 'slideshow_description',
+			'label'        => $t('Description'),
+			'required'     => TRUE,
+			'widget'       => array(
+				'type'	=> 'text_textarea'
+			),
+ 
+		),
+		
+		'slideshow_image'	=> array(
+		
+			'field_name'   => 'slideshow_image',
+			'label'        => $t('Image'),
+			'required'     => TRUE,
+			'widget'       => array(
+				'type'	=> 'image'
+			),
+ 
+		),
+ 
+	);
+ 
+	foreach( $instances as $instance ) { // Loop through our instances
+ 
+		$instance['entity_type']   = 'node';
+		$instance['bundle']        = 'slideshow'; // Attach the instance to our content type
+ 
+		field_create_instance($instance);
+ 
+	}
+ 
+}
+/**
+ * Implements myModule_uninstall().
+ */
+function myModule_uninstall()
+{
+	
+	// Remove existing content
+ 
+	$query = 'SELECT nid ';
+	$query .= 'FROM {node} ';
+	$query .= 'WHERE {node}.type = :type ';
+	
+	$result = db_query( $query, array(':type'	=> 'slideshow') );
+ 
+	$nids = array();
+ 
+	foreach( $result as $row ) {
+ 
+		$nids[] = $row->nid;
+ 
+	}
+ 
+	node_delete_multiple( $nids );
+	
+	// Delete fields and instances
+ 
+	foreach( field_info_instances('node', 'slideshow') as $field_name	=> $instance ) {
+ 
+		field_delete_instance($instance);
+ 
+	}
+ 
+	// Delete content type
+ 
+	node_type_delete('slideshow');
+ 
+	// Purge field batch
+ 
+	field_purge_batch(1000); // Purge delete fields data
+ 
+}

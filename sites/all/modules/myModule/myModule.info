@@ -1,0 +1,12 @@
+name =  My Module
+description = This is  a custom module with create custom content type
+version = 1.0
+core = 7.x
+
+files[] = myModule.install
+files[] = myModule.module
+
+; Information added by Drupal.org packaging script on 2018-02-21
+version = "7.57"
+project = "drupal"
+datestamp = "1519235152"
